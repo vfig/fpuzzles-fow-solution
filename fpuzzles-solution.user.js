@@ -14,7 +14,7 @@
 (function() {
     'use strict';
 
-    const numSolutionToolsButtons = 3;
+    const numSolutionToolsRows = 4;
 
     const doShim = function() {
         // Additional import/export data
@@ -73,10 +73,15 @@
             }
 
             const baseX = gridX - (sidebarDist + sidebarW / 2) + sidebarW;
-            const baseY = gridY + gridSL + 35 - ((buttonSH * numSolutionToolsButtons) + (buttonGap * (numSolutionToolsButtons - 1)) + buttonMargin);
+            const baseY = gridY + gridSL + 35 - ((buttonSH * numSolutionToolsRows) + (buttonGap * (numSolutionToolsRows - 1)) + buttonMargin);
+            const narrowButtonGap = 6;
+            const narrowButtonW = buttonW / 2 - narrowButtonGap;
             const saveSolutionButton = new button(baseX, baseY + (buttonSH + buttonGap) * 0, buttonW, buttonSH, ['SolutionTools'], 'SaveSolution', 'Save Solution');
             const viewSolutionButton = new button(baseX, baseY + (buttonSH + buttonGap) * 1, buttonW, buttonSH, ['SolutionTools'], 'ViewSolution', 'View Solution');
             const clearSolutionButton = new button(baseX, baseY + (buttonSH + buttonGap) * 2, buttonW, buttonSH, ['SolutionTools'], 'ClearSolution', 'Clear Solution');
+
+            const copySolutionButton = new button(baseX - narrowButtonW / 2 - narrowButtonGap, baseY + (buttonSH + buttonGap) * 3, narrowButtonW, buttonSH, ['SolutionTools'], 'CopySolution', 'Copy');
+            const pasteSolutionButton = new button(baseX + narrowButtonW / 2 + narrowButtonGap, baseY + (buttonSH + buttonGap) * 3, narrowButtonW, buttonSH, ['SolutionTools'], 'PasteSolution', 'Paste');
 
             saveSolutionButton.click = function() {
                 if (!this.hovering()) {
@@ -129,9 +134,91 @@
                 return true;
             }
 
+            copySolutionButton.click = function() {
+                if (!this.hovering()) {
+                    return;
+                }
+
+                var getCellSolution;
+                if (window.grid.solution) {
+                    const solution = window.grid.solution;
+                    getCellSolution = function(i, j) {
+                        let value = solution[i * size + j];
+                        if (value == '.') {
+                            value = 0;
+                        }
+                        return value;
+                    }
+                } else {
+                    getCellSolution = function(i, j) {
+                        return 0;
+                    }
+                }
+
+                var solutionText = "";
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        solutionText += getCellSolution(i, j).toString();
+                    }
+                    solutionText += "\n";
+                }
+
+                navigator.clipboard.writeText(solutionText);
+
+                return true;
+            }
+
+            pasteSolutionButton.click = function() {
+                if (!this.hovering()) {
+                    return;
+                }
+
+                navigator.clipboard.readText().then((solutionText) => {
+                    // Strip whitespace and validate the clipboard text.
+                    const pattern = /^[0-9 \t\r\n]+$/;
+                    if (! pattern.test(solutionText)) {
+                        alert("Paste error: text must be only digits 0-9.");
+                        return false;
+                    }
+                    solutionText = solutionText.replaceAll(/[ \t\r\n]/g, '');
+                    if (solutionText.length!==(size * size)) {
+                        alert("Paste error: text must have exactly "+(size * size)+" digits.");
+                        return false;
+                    }
+
+                    // Parse out the solution digits.
+                    let solution = [];
+                    const zeroCode = "0".charCodeAt(0);
+                    for (let i = 0; i < size * size; i++) {
+                        var digit = solutionText.charCodeAt(i) - zeroCode;
+                        if (digit==0) {
+                            solution.push('.');
+                        } else {
+                            solution.push(digit);
+                        }
+                    }
+                    window.grid.solution = solution;
+
+                    // View the solution, so it is clear the paste worked.
+                    for (let i = 0; i < size; i++) {
+                        for (let j = 0; j < size; j++) {
+                            let value = solution[i * size + j];
+                            if (value == '.') {
+                                value = 0;
+                            }
+                            window.grid[i][j].value = value;
+                        }
+                    }
+                });
+
+                return true;
+            }
+
             sidebar.buttons.push(saveSolutionButton);
             sidebar.buttons.push(viewSolutionButton);
             sidebar.buttons.push(clearSolutionButton);
+            sidebar.buttons.push(copySolutionButton);
+            sidebar.buttons.push(pasteSolutionButton);
         }
 
         const origDrawPopups = window.drawPopups;
@@ -146,8 +233,8 @@
                 ctx.lineWidth = lineWW;
                 ctx.fillStyle = boolSettings['Dark Mode'] ? '#404040' : '#D0D0D0';
                 ctx.strokeStyle = boolSettings['Dark Mode'] ? '#202020' : '#808080';
-                ctx.fillRect(gridX - sidebarDist, gridY + gridSL + 35, sidebarW, -((buttonSH * numSolutionToolsButtons) + (buttonGap * (numSolutionToolsButtons - 1)) + (buttonMargin * 2)));
-                ctx.strokeRect(gridX - sidebarDist, gridY + gridSL + 35, sidebarW, -((buttonSH * numSolutionToolsButtons) + (buttonGap * (numSolutionToolsButtons - 1)) + (buttonMargin * 2)));
+                ctx.fillRect(gridX - sidebarDist, gridY + gridSL + 35, sidebarW, -((buttonSH * numSolutionToolsRows) + (buttonGap * (numSolutionToolsRows - 1)) + (buttonMargin * 2)));
+                ctx.strokeRect(gridX - sidebarDist, gridY + gridSL + 35, sidebarW, -((buttonSH * numSolutionToolsRows) + (buttonGap * (numSolutionToolsRows - 1)) + (buttonMargin * 2)));
             }
         }
 
@@ -158,7 +245,7 @@
                 if (sidebars.length) {
                     var hoveredButton = sidebars[sidebars.findIndex(a => a.title === 'Constraints')].buttons[sidebars[sidebars.findIndex(a => a.title === 'Constraints')].buttons.findIndex(a => a.id === 'SolutionTools')];
                     if (popup === 'SolutionTools' && (mouseX < hoveredButton.x - hoveredButton.w / 2 - buttonMargin || mouseX > hoveredButton.x + hoveredButton.w / 2 + buttonMargin || mouseY < hoveredButton.y - buttonMargin || mouseY > hoveredButton.y + buttonSH + buttonMargin) &&
-                        (mouseX < gridX - sidebarDist || mouseX > gridX - sidebarDist + sidebarW + (buttonGap + buttonSH) * 2 || mouseY < gridY + gridSL + 35 - ((buttonSH * numSolutionToolsButtons) + (buttonGap * (numSolutionToolsButtons - 1)) + (buttonMargin * 2)) || mouseY > gridY + gridSL + 35)) {
+                        (mouseX < gridX - sidebarDist || mouseX > gridX - sidebarDist + sidebarW + (buttonGap + buttonSH) * 2 || mouseY < gridY + gridSL + 35 - ((buttonSH * numSolutionToolsRows) + (buttonGap * (numSolutionToolsRows - 1)) + (buttonMargin * 2)) || mouseY > gridY + gridSL + 35)) {
                         closePopups();
                     }
                 }
