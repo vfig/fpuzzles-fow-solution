@@ -29,12 +29,7 @@
                 delete puzzle[id];
             }
 
-            if (puzzle.negative && puzzle.negative.includes(id)) {
-                puzzle.negative = puzzle.negative.filter(v => v !== id);
-                if (puzzle.negative.length === 0) {
-                    delete puzzle.negative;
-                }
-            } else if (puzzle.fogofwar) {
+            if (puzzle.fogofwar) {
                 puzzle.text = puzzle.text || [];
                 puzzle.text.push(...puzzle.fogofwar.map(cell => ({
                     cells: [cell],
@@ -61,9 +56,6 @@
                         if (puzzle.text.length === 0) {
                             delete puzzle.text;
                         }
-                    } else {
-                        puzzle.negative = puzzle.negative || [];
-                        puzzle.negative.push(id);
                     }
                 }
 
@@ -74,11 +66,11 @@
             origImportPuzzle(string, clearHistory);
         }
 
-        const origDrawConstraints = drawConstraints;
-        drawConstraints = (...args) => {
-            origDrawConstraints(...args);
+        const origDrawCosmetics = drawCosmetics;
+        drawCosmetics = (...args) => {
+            origDrawCosmetics(...args);
 
-            for (const c of constraints[id] || []) {
+            for (const c of cosmetics[id] || []) {
                 c.show();
             }
         }
@@ -108,12 +100,10 @@
         categorizeTools = () => {
             origCategorizeTools();
 
-            toolConstraints.push(name);
-            perCellConstraints.push(name);
+            toolCosmetics.push(name);
+            undraggableCosmetics.push(name);
             oneCellAtATimeTools.push(name);
             tools.push(name);
-            // not really a negative constraint, just tell the UI to show the checkbox
-            negativableConstraints.push(name);
         };
 
         descriptions[name] = [
@@ -123,18 +113,13 @@
             'Please note that the fog feature will work properly',
             'only when the puzzle includes the solution!'
         ];
-        descriptions[name + '-'] = ["Don't show the bulbs in SudokuPad"];
-
-        if (window.boolConstraints) {
-            window.onload();
-        }
     };
 
     const intervalId = setInterval(() => {
         if (typeof grid === 'undefined' ||
             typeof exportPuzzle === 'undefined' ||
             typeof importPuzzle === 'undefined' ||
-            typeof drawConstraints === 'undefined' ||
+            typeof drawCosmetics === 'undefined' ||
             typeof categorizeTools === 'undefined') {
             return;
         }
