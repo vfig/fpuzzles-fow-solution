@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fpuzzles-Solution
 // @namespace    http://tampermonkey.net/
-// @version      1.5
+// @version      1.6
 // @description  Can input a solution to a puzzle
 // @author       Rangsk
 // @match        https://*.f-puzzles.com/*
@@ -92,7 +92,13 @@
                         solution.push(value);
                     }
                 }
-                window.grid.solution = solution;
+                if(solution.every(value => value === '.')) {
+                    // Solution is entirely blank
+                    delete window.grid.solution;
+                }
+                else {
+                    window.grid.solution = solution;
+                }
                 return true;
             }
 
