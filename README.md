@@ -1,6 +1,9 @@
-# F-Puzzles Fog of War Bulb
-Userscript to add a fog of war bulb control to f-puzzles
+# F-Puzzles Fog of War Bulb & Solution
+Userscript to add a fog of war bulb control to f-puzzles.
 
 ## Installation
 - Install browser extension for running user scripts: GreaseMonkey for Firefox, TamperMonkey for Google Chrome and family
-- Install the script by going to the following link: https://github.com/yusitnikov/fpuzzles-fow-bulb/raw/main/fpuzzles-fow-bulb.user.js
+- Install these three scripts:
+  + https://github.com/vfig/fpuzzles-fow-solution/raw/main/fpuzzles-fow-solution.user.js
+  + https://github.com/vfig/fpuzzles-fow-solution/raw/main/fpuzzles-fow-bulb.user.js
+  + https://github.com/vfig/fpuzzles-fow-solution/raw/main/fpuzzles-solution.user.js
