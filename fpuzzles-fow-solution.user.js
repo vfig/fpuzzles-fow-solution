@@ -17,6 +17,15 @@
 // As soon as a solution is set, the fog of war will be active. In 'Setting'
 // mode it will be almost transparent. Bulb cosmetics and correct digits will
 // lift the fog of war in adjacent cells.
+//
+// To make a SudokuPad (beta) link for a fog puzzle, add `?setting-showfogofwar=1`
+// to the link. For example, for an f-puzzles link like:
+//
+//     https://f-puzzles.com/?load=XXXX
+//
+// The corresponding SudokuPad (beta) link would be:
+//
+//     https://beta.sudokupad.app/fpuzzlesXXXX?setting-showfogofwar=1
 
 (() => {
     const doShim = () => {
@@ -51,8 +60,6 @@
             };
 
             ctx.save();
-            // ctx.translate(gridX, gridY);
-            // ctx.scale(cellSL, cellSL);
             for (var y=0; y<grid.length; ++y) {
                 var row = grid[y];
                 for (var x=0; x<row.length; ++x) {
@@ -83,8 +90,6 @@
                 }
             }
             ctx.restore();
-            // BUG: this script causes the tab to run out of memory eventually!
-            //      its unclear to me why? i am saving+restoring.
 
             for (var y=0; y<grid.length; ++y) {
                 var row = grid[y];
